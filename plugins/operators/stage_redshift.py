@@ -7,18 +7,15 @@ class StageToRedshiftOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self,
-                 # Define your operators params (with defaults) here
-                 # Example:
-                 # redshift_conn_id=your-connection-name
-                 *args, **kwargs):
+                 *args,
+                 task_id: str = "foo",
+                 **kwargs):
 
-        super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
-        # Map params here
-        # Example:
-        # self.conn_id = conn_id
+        super(StageToRedshiftOperator, self).__init__(*args, task_id=task_id, **kwargs)
+        self.task_id = task_id
 
     def execute(self, context):
-        self.log.info('StageToRedshiftOperator not implemented yet')
+        self.log.info("StageToRedshiftOperator not implemented yet, taskId = " + self.task_id)
 
 
 
