@@ -8,15 +8,26 @@ class LoadDimensionOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self,
-                 # Define your operators params (with defaults) here
-                 # Example:
-                 # conn_id = your-connection-name
-                 *args, **kwargs):
+                 *args,
+                 task_id: str = "foo",
+                 sql_statement: str = "my_sql",
+                 target_db: str = "my_target_db",
+                 target_table: str = "my_target_table",
+                 redshift_conn_id: str = "my_redshift",
+                 **kwargs):
 
-        super(LoadDimensionOperator, self).__init__(*args, **kwargs)
-        # Map params here
-        # Example:
-        # self.conn_id = conn_id
+        super(LoadDimensionOperator, self).__init__(*args, task_id=task_id, **kwargs)
+        self.task_id = task_id
+        self.sql_statement = sql_statement
+        self.target_db = target_db
+        self.target_table = target_table
+        self.redshift_conn_id = redshift_conn_id
 
     def execute(self, context):
-        self.log.info('LoadDimensionOperator not implemented yet')
+        self.log.info('Deleting data from the dimension table')
+        redshift_hook = PostgresHook(self.redshift_conn_id)
+        delete_from_statement = "delete from {0}.{1}".format(self.target_db, self.target_table)
+        redshift_hook.run(delete_from_statement)
+        self.log.info('Writing data to the dimension table')
+        insert_statement = "insert into {0}.{1} ({2})".format(self.target_db, self.target_table, self.sql_statement)
+        redshift_hook.run(insert_statement)

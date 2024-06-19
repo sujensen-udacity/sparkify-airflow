@@ -51,24 +51,42 @@ def final_project(**kwargs):
         sql_statement=SqlQueries.songplay_table_insert,
         target_db='dev',
         target_table='public.songplays',
+        redshift_conn_id='redshift',
     )
-    """
+
     load_user_dimension_table = LoadDimensionOperator(
         task_id='Load_user_dim_table',
+        sql_statement=SqlQueries.user_table_insert,
+        target_db='dev',
+        target_table='public.users',
+        redshift_conn_id='redshift',
     )
 
     load_song_dimension_table = LoadDimensionOperator(
         task_id='Load_song_dim_table',
+        sql_statement=SqlQueries.song_table_insert,
+        target_db='dev',
+        target_table='public.songs',
+        redshift_conn_id='redshift',
     )
 
     load_artist_dimension_table = LoadDimensionOperator(
         task_id='Load_artist_dim_table',
+        sql_statement=SqlQueries.artist_table_insert,
+        target_db='dev',
+        target_table='public.artists',
+        redshift_conn_id='redshift',
     )
 
     load_time_dimension_table = LoadDimensionOperator(
         task_id='Load_time_dim_table',
+        sql_statement=SqlQueries.time_table_insert,
+        target_db='dev',
+        target_table='public.time',
+        redshift_conn_id='redshift',
     )
 
+    """
     run_quality_checks = DataQualityOperator(
         task_id='Run_data_quality_checks',
     )
@@ -79,7 +97,7 @@ def final_project(**kwargs):
     # Add dependencies to the graph
     start_operator >> [stage_events_to_redshift, stage_songs_to_redshift]
     [stage_events_to_redshift, stage_songs_to_redshift] >> load_songplays_table
-    #load_songplays_table >> [load_song_dimension_table, load_user_dimension_table, load_artist_dimension_table, load_time_dimension_table]
+    load_songplays_table >> [load_song_dimension_table, load_user_dimension_table, load_artist_dimension_table, load_time_dimension_table]
     #[load_song_dimension_table, load_user_dimension_table, load_artist_dimension_table, load_time_dimension_table] >> run_quality_checks
     #run_quality_checks >> end_operator
 
