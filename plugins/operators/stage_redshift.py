@@ -46,6 +46,9 @@ class StageToRedshiftOperator(BaseOperator):
         metastore_backend = MetastoreBackend()
         aws_connection = metastore_backend.get_connection(self.aws_credentials_id)
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+        self.log.info("Deleting data from the staging table")
+        delete_from_statement = "truncate table {0}".format(self.table)
+        redshift.run(delete_from_statement)
         self.log.info("s3 key to be loaded: " + self.s3_key)
         formatted_copy_statement = self.staging_table_copy.format(
             self.table,
