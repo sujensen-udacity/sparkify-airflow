@@ -14,6 +14,7 @@ class LoadDimensionOperator(BaseOperator):
                  target_db: str = "my_target_db",
                  target_table: str = "my_target_table",
                  redshift_conn_id: str = "my_redshift",
+                 append_only: bool = False,
                  **kwargs):
 
         super(LoadDimensionOperator, self).__init__(*args, task_id=task_id, **kwargs)
@@ -22,12 +23,14 @@ class LoadDimensionOperator(BaseOperator):
         self.target_db = target_db
         self.target_table = target_table
         self.redshift_conn_id = redshift_conn_id
+        self.append_only = append_only
 
     def execute(self, context):
-        self.log.info('Deleting data from the dimension table')
         redshift_hook = PostgresHook(self.redshift_conn_id)
-        delete_from_statement = "truncate table {0}.{1}".format(self.target_db, self.target_table)
-        redshift_hook.run(delete_from_statement)
+        if not self.append_only:
+            self.log.info('Deleting data from the dimension table')
+            delete_from_statement = "truncate table {0}.{1}".format(self.target_db, self.target_table)
+            redshift_hook.run(delete_from_statement)
         self.log.info('Writing data to the dimension table')
         insert_statement = "insert into {0}.{1} ({2})".format(self.target_db, self.target_table, self.sql_statement)
         redshift_hook.run(insert_statement)
