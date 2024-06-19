@@ -26,7 +26,7 @@ class LoadDimensionOperator(BaseOperator):
     def execute(self, context):
         self.log.info('Deleting data from the dimension table')
         redshift_hook = PostgresHook(self.redshift_conn_id)
-        delete_from_statement = "delete from {0}.{1}".format(self.target_db, self.target_table)
+        delete_from_statement = "truncate table {0}.{1}".format(self.target_db, self.target_table)
         redshift_hook.run(delete_from_statement)
         self.log.info('Writing data to the dimension table')
         insert_statement = "insert into {0}.{1} ({2})".format(self.target_db, self.target_table, self.sql_statement)
