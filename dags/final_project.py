@@ -86,20 +86,27 @@ def final_project(**kwargs):
         redshift_conn_id='redshift',
     )
 
-    """
     run_quality_checks = DataQualityOperator(
         task_id='Run_data_quality_checks',
+        sql_statements=[
+            'select count(*) from songplays where userid is null',
+            'select count(*) from songs where title is null',
+        ],
+        expected_results=[
+            0,  # we expect every song play (event) to have a userid
+            0,  # we expect every song to have a title
+        ],
+        redshift_conn_id='redshift',
     )
 
     end_operator = DummyOperator(task_id='End_execution')
-    """
 
     # Add dependencies to the graph
     start_operator >> [stage_events_to_redshift, stage_songs_to_redshift]
     [stage_events_to_redshift, stage_songs_to_redshift] >> load_songplays_table
     load_songplays_table >> [load_song_dimension_table, load_user_dimension_table, load_artist_dimension_table, load_time_dimension_table]
-    #[load_song_dimension_table, load_user_dimension_table, load_artist_dimension_table, load_time_dimension_table] >> run_quality_checks
-    #run_quality_checks >> end_operator
+    [load_song_dimension_table, load_user_dimension_table, load_artist_dimension_table, load_time_dimension_table] >> run_quality_checks
+    run_quality_checks >> end_operator
 
 
 final_project_dag = final_project()
