@@ -67,3 +67,32 @@ Before diving into development, familiarize yourself with the following files:
 - [dags/final_project.py](dags/final_project.py)
 
 Now you're ready to embark on this exciting journey into the world of Data Pipelines with Airflow!
+
+## Update: How To Run This Dag
+
+2024-06-19: I have completed the project, and have some important comments about running the DAG.
+
+### 1. The DAG assumes the tables already exist in Redshift
+
+I ran the provided create_tables.sql manually in the Redshift SQL editor.  Since the project did not say that the pipeline should include creating the tables.
+
+### 2. The default DAG start date is now()
+
+We were already instructed to set catchup to False in the default args for the dag.  Also, realistically the dag default start date should be now(), because we want to automatically process any new files that come in, since our operator uses the execution date to find files in s3.  However, our data in s3 only includes 2018 files, so we want to have the possibility of backfilling it.  
+
+In this case, we would run the dag once in a backfill command, for a given start and end date (in the past) and load the files timestamped in s3 with that date.
+
+For example, run this command:
+
+`airflow dags backfill -s 2018-11-04 -e 2018-11-04 final_project`
+
+to backfill the data for 2018-11-04.
+
+### 3. The DAG will fail (on purpose) if there is no data for today
+
+If you trigger the dag manually from the UI, to run with the default args, it will take the execution time as now (meaning today, in 2024), and there is no s3 data for today, so the dag will fail, as expected.
+
+In the Stage_events task, you can look at the logs and see the error, for example:
+
+`The specified S3 prefix 'log-data/2024/06/2024-06-19-events.json' does not exist.`
+
